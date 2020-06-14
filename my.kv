@@ -1,0 +1,146 @@
+<Root>:
+    id : rootobj
+    FloatLayout:
+        orientation: 'vertical'
+        FloatLayout:
+            ActionBar:
+                pos_hint: {'top':1}
+                ActionView:
+                    use_separator: True
+                    ActionPrevious:
+                        title: 'Interactive Image Segmentation'
+                        with_previous: False
+                        app_icon_width: 1
+                        app_icon_height: 1
+                    ActionOverflow:
+                    ActionButton:
+                        text: 'Load'
+                        on_release: root.show_load()
+                    ActionButton:
+                        text: 'Save'
+                        on_release: root.show_save()    
+                    ActionButton:
+                        text: 'Exit'
+        
+        BoxLayout:
+            size_hint: [.95, .95]
+            pos_hint: { 'top' : 0.97, 'left':1 }
+
+            # Add padding and spacing
+            orientation: 'vertical'
+            padding: 50
+            spacing: 100
+            id : cv
+            Widget:
+                id: w_canvas
+                size: self.size
+                canvas:
+                    Color:
+                        group: 'a'
+                        rgb: [.8, .8, .8]
+                    Rectangle:
+                        group: 'b'
+                        pos: self.pos
+                        size: self.size
+                        source: ""
+
+        
+            
+        
+        FloatLayout:
+            orientation: "vertical"
+            FloatLayout:
+            ActionBar:
+                pos_hint: {'bottom':1}
+                ActionView:
+                    use_separator: True
+                    ActionPrevious:
+                        title: "Menu"
+                        with_previous: False
+                        app_icon_width: 1
+                        app_icon_height: 1
+                    ActionOverflow:
+                    ActionGroup:
+                        text: 'Mode'
+                        ActionButton:
+                            text: 'Watershed'
+                            on_press: root.use_watershed()
+                        ActionButton:
+                            text: 'Grabcut'
+                            on_press: root.use_grabcut()
+                    ActionButton:
+                        text: 'Reset'
+                        on_release: root.show_save()
+                    
+
+
+                
+        
+
+<LoadDialog>:
+    BoxLayout:
+        size: root.size
+        pos: root.pos
+        orientation: "vertical"
+        FileChooserIconView:
+            id: filechooser
+
+        BoxLayout:
+            size_hint_y: None
+            height: 30
+            Button:
+                text: "Cancel"
+                on_release: root.cancel()
+
+            Button:
+                text: "Load"
+                on_release: root.load(filechooser.path, filechooser.selection)
+
+<SaveDialog>:
+    text_input: text_input
+    BoxLayout:
+        size: root.size
+        pos: root.pos
+        orientation: "vertical"
+        FileChooserIconView:
+            id: filechooser
+            on_selection: text_input.text = self.selection and self.selection[0] or ''
+
+        TextInput:
+            id: text_input
+            size_hint_y: None
+            height: 30
+            multiline: False
+
+    BoxLayout:
+        size_hint_y: None
+        height: 30
+        Button:
+            text: "Cancel"
+            on_release: root.cancel()
+
+        Button:
+            text: "Save"
+            on_release: root.save(filechooser.path, text_input.text)
+
+<Popup_watershed>:
+    Label:
+        text: "1-7 -> switch marker color"
+        size_hint: 0.6,0.2
+        pos_hint: {"x": 0.2}
+    Label:
+        text: "SPACE -> update segmentation"
+        size_hint: 0.6,0.2
+        pos_hint: {"x": 0.2}
+    Label:
+        text: "r -> reset"
+        size_hint: 0.6,0.2
+        pos_hint: {"x": 0.2}
+    Label:
+        text: "a -> toggle autoupdate"
+        size_hint: 0.6,0.2
+        pos_hint: {"x": 0.2}
+    Label:
+        text: "ESC -> exit"
+        size_hint: 0.6,0.2
+        pos_hint: {"x": 0.2}
