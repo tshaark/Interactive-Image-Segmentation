@@ -11,8 +11,9 @@ from kivy.uix.button import Button
 import cv2 as cv
 from grabcut import GrabCut
 from watershed import WaterShed
-
+from blur import Blur
 import os
+import numpy as np
 
 
 
@@ -25,8 +26,6 @@ class PopupWatershed(FloatLayout):
 
 
 class SaveDialog(FloatLayout):
-    save = ObjectProperty(None)
-    text_input = ObjectProperty(None)
     cancel = ObjectProperty(None)
 
 class Root(FloatLayout):
@@ -35,30 +34,42 @@ class Root(FloatLayout):
     text_input = ObjectProperty(None)
     def __init__(self):
         super(Root, self).__init__()
-        self.cvimage = None
-        self.update_image = None
+        self.path = None
+        self.updated_image = None
+        self.original_image = None
+        self.original_path = None
+        self.alpha = 1
+        self.beta = 0
+        self.itr = 0
 
     def dismiss_popup(self):
         self._popup.dismiss()
+    
     def quit(self):
         App.get_running_app().stop()
+    
     def use_watershed(self):
-        # self.show_watershed_inst()
-        img = cv.imread(self.cvimage)
+        img = cv.imread(self.path)
         ws = WaterShed(img)
         path = ws.run()
         self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
         self.rect.source = path
-        self.update_image = cv.imread(path)
+        self.updated_image = cv.imread(path)
+        self.path = path
         return
     
     def use_grabcut(self):
-        img = cv.imread(self.cvimage)
+        img = cv.imread(self.path)
         gc = GrabCut(img)
         path = gc.run()
         self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
         self.rect.source = path
-        self.update_image = cv.imread(path)
+        self.updated_image = cv.imread(path)
+        self.path = path
+        return
+    def zoom_image(self, scale):
+        self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
+        self.rect.size = (scale*400,scale*400)
         return
 
     def show_load(self):
@@ -74,33 +85,114 @@ class Root(FloatLayout):
         self._popup.open()
 
     def show_save(self):
-        content = SaveDialog(save=self.save, cancel=self.dismiss_popup)
-        self._popup = Popup(title="Save file", content=content,
-                            size_hint=(0.9, 0.9))
-        self._popup.open()
+        # content = SaveDialog(cancel=self.dismiss_popup)
+        # self._popup = Popup(title="Save file", content=content,
+        #                     size_hint=(0.9, 0.9))
+        # self._popup.open()
+        cv.imwrite('output.png',self.updated_image)
 
     def load(self, path, filename):
         with open(os.path.join(path, filename[0])) as stream:
-            self.cvimage = stream.name
+            self.path = stream.name
+            self.original_path = self.path
             self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
-            self.rect.source = stream.name 
-                
-                
+            self.rect.source = self.path 
+            self.updated_image = cv.imread(self.path)    
+            self.original_image = self.updated_image       
         self.dismiss_popup()
 
     def save(self, path, filename):
+        print(path, filename)
         with open(os.path.join(path, filename), 'w') as stream:
-            stream.write(self.text_input.text)
-
+            stream.write(self.updated_image)
         self.dismiss_popup()
     
     def reset(self):
         self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
-        self.rect.source = self.cvimage
-        
+        self.rect.source = self.original_path
+        self.updated_image = cv.imread(self.original_path)
+        self.original_image = self.updated_image
+        self.path = self.original_path
+
+    def use_blur_avg(self):
+        blur = Blur(self.updated_image)
+        self.updated_image = blur.averaging()
+        del blur
+        cv.imwrite('temp1.png',self.updated_image)
+        path = os.getcwd() + '/temp1.png'
+        self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
+        self.rect.source = path
+        self.path = path
+        os.remove(path)
+        return
+
+    def use_blur_gaus(self):
+        blur = Blur(self.updated_image)
+        self.updated_image = blur.gaussian()
+        del blur
+        cv.imwrite('temp2.png',self.updated_image)
+        path = os.getcwd() + '/temp2.png'
+        self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
+        self.rect.source = path
+        self.path = path
+        os.remove(path)
+        return
+
+    
+    def use_blur_med(self):
+        blur = Blur(self.updated_image)
+        self.updated_image = blur.median()
+        del blur
+        cv.imwrite('temp3.png',self.updated_image)
+        path = os.getcwd() + '/temp3.png'
+        self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
+        self.rect.source = path
+        self.path = path
+        os.remove(path)
+        return
+    
+    def use_blur_bil(self):
+        blur = Blur(self.updated_image)
+        self.updated_image = blur.bilateral()
+        del blur
+        cv.imwrite('temp4.png',self.updated_image)
+        path = os.getcwd() + '/temp4.png'
+        self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
+        self.rect.source = path
+        self.path = path
+        os.remove(path)
+        return
+    
+    def use_sharpen(self):
+        blur = Blur(self.updated_image)
+        self.updated_image = blur.sharpen()
+        del blur
+        cv.imwrite('temp5.png',self.updated_image)
+        path = os.getcwd() + '/temp5.png'
+        self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
+        self.rect.source = path
+        self.path = path
+        os.remove(path)
+        return
+
+    def adjust_image(self,alpha, beta):
+        self.itr += 1
+        if alpha != -1:
+            self.alpha = alpha
+        if beta != -1:
+            self.beta = beta
+        self.updated_image = cv.convertScaleAbs(self.original_image, alpha=self.alpha, beta=self.beta)
+        cv.imwrite('temp(%d).png'%self.itr,self.updated_image)
+        path = os.getcwd() + '/temp(%d).png'%self.itr
+        self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
+        self.rect.source = path
+        self.path = path
+        os.remove(path)
+        return
 
 
-class MyApp(App):
+
+class InteractiveSegmentationApp(App):
     def build(self):
         return Root()
         
@@ -112,5 +204,5 @@ Factory.register('SaveDialog', cls=SaveDialog)
 
 
 if __name__ == '__main__':
-    m = MyApp()
+    m = InteractiveSegmentationApp()
     m.run()

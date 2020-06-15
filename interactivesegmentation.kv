@@ -1,4 +1,3 @@
-#:import cv cv2
 <Root>:
     id : rootobj
     FloatLayout:
@@ -26,41 +25,12 @@
                     ActionButton:
                         text: 'Exit'
                         on_release: root.quit()
-        
-        BoxLayout:
-            size_hint: [.85, .95]
-            pos_hint: { 'top' : 0.98, 'x':0 }
-
-            # Add padding and spacing
-            orientation: 'vertical'
-            padding: 50
-            spacing: 100
-            id : cv
-            Widget:
-                id: w_canvas
-                size: self.size
-                canvas:
-                    Color:
-                        group: 'a'
-                        rgb: [.8, .8, .8]
-                    Rectangle:
-                        group: 'b'
-                        pos: self.pos
-                        size: self.size
-                        source: ""
-
-        
-            
-        
         FloatLayout:
-            orientation: "vertical"
-            FloatLayout:
             ActionBar:
-                pos_hint: {'bottom':1}
+                pos_hint: {'top': .935}
                 ActionView:
                     use_separator: True
                     ActionPrevious:
-                        title: "Menu"
                         with_previous: False
                         app_icon_width: 1
                         app_icon_height: 1
@@ -76,11 +46,107 @@
                     ActionButton:
                         text: 'Reset'
                         on_release: root.reset()
-                    
-
-
-                
         
+        BoxLayout:
+            size_hint: [.75, .95]
+            pos_hint: { 'top' : 0.92, 'x':0 }
+
+            # Add padding and spacing
+            orientation: 'vertical'
+            # padding: 50
+            # spacing: 100
+            id : cv
+            Widget:
+                id: w_canvas
+                size: self.size
+                canvas:
+                    Color:
+                        group: 'a'
+                        rgb: [.8, .8, .8]
+                    Rectangle:
+                        group: 'b'
+                        pos: self.pos
+                        size: (400,400)
+                        source: ""
+            
+        BoxLayout:
+            orientation:'vertical'
+            size_hint: [.20, .838]
+            pos_hint: { 'bottom' : 1, 'right':1 }
+            ActionBar:
+                pos_hint: {'top': .935}
+                ActionView:
+                    use_separator: True
+                    ActionPrevious:
+                        with_previous: False
+                        app_icon_width: 1
+                        app_icon_height: 1
+                    ActionOverflow:
+                    ActionGroup:
+                        text: 'Blur'
+                        halign: 'center'
+                        ActionButton:
+                            text: 'Averaging'
+                            on_press: root.use_blur_avg()
+                        ActionButton:
+                            text: 'Gaussian'
+                            on_press: root.use_blur_gaus()
+                        ActionButton:
+                            text: 'Median'
+                            on_press: root.use_blur_med()
+                        ActionButton:
+                            text: 'Bilateral'
+                            on_press: root.use_blur_bil()
+                    
+            BoxLayout:
+                orientation: 'vertical' 
+                Button:
+                    text:"Sharpen"
+                    background_color: (0.45,0.45,0.45,1)
+                    on_press: root.use_sharpen()
+                Label:
+                    text: "ZOOM"       
+                Slider:
+                    id: slider_zoom
+                    min: 1
+                    max: 1.6
+                    step: 0.01
+                    orientation: 'horizontal'
+                Button:
+                    text: "Done"
+                    background_color: (0.45,0.45,0.45,1)
+                    height: 20
+                    on_release: root.zoom_image(slider_zoom.value)
+
+                Label:
+                    text: "CONTRAST"       
+                Slider:
+                    id: slider_contrast
+                    min: 1
+                    max: 3
+                    step: 0.2
+                    orientation: 'horizontal'
+                    
+                Button:
+                    text: "Done"
+                    background_color: (0.45,0.45,0.45,1)
+                    height: 20
+                    on_release: root.adjust_image(slider_contrast.value,-1)
+                Label:
+                    text: "BRIGHTNESS"       
+                Slider:
+                    id: slider_brightness
+                    min: 0
+                    max: 100
+                    step: 1
+                    orientation: 'horizontal'
+                    
+                Button:
+                    text: "Done"
+                    background_color: (0.45,0.45,0.45,1)
+                    on_release: root.adjust_image(-1,slider_brightness.value)
+            
+
 
 <LoadDialog>:
     BoxLayout:
@@ -101,32 +167,31 @@
                 text: "Load"
                 on_release: root.load(filechooser.path, filechooser.selection)
 
-<SaveDialog>:
+<SaveImageDialog>:
     text_input: text_input
     BoxLayout:
         size: root.size
         pos: root.pos
         orientation: "vertical"
-        FileChooserIconView:
-            id: filechooser
-            on_selection: text_input.text = self.selection and self.selection[0] or ''
-
         TextInput:
             id: text_input
             size_hint_y: None
             height: 30
             multiline: False
+        FileChooserIconView:
+            id: filechooser
 
-    BoxLayout:
-        size_hint_y: None
-        height: 30
-        Button:
-            text: "Cancel"
-            on_release: root.cancel()
 
-        Button:
-            text: "Save"
-            on_release: cv.imwrite(filechooser.path + '/' + text_input.text, root.update_image)
+        BoxLayout:
+            size_hint_y: None
+            height: 30
+            Button:
+                text: "Cancel"
+                on_release: root.cancel()
+
+            Button:
+                text: "Save"
+                on_release: root.save(filechooser.path, text_input.text)
 
 <PopupWatershed>:
     FloatLayout:
