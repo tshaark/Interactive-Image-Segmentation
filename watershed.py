@@ -13,6 +13,7 @@ from __future__ import print_function
 import numpy as np
 import cv2 as cv
 from common import Sketcher
+import os
 
 class WaterShed:
     def __init__(self, img):
@@ -60,7 +61,10 @@ class WaterShed:
                 self.sketch.show()
             if ch == ord('s'):
                 cv.destroyAllWindows()
-                return self.vis
+                cv.imwrite('watershed_output.png', self.vis)
+                path = os.getcwd() + '/watershed_output.png'
+                cv.destroyAllWindows()
+                return path
 
         cv.destroyAllWindows()
 

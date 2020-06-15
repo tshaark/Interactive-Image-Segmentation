@@ -119,7 +119,7 @@ class GrabCut():
                 bar = np.zeros((self.img.shape[0], 5, 3), np.uint8)
                 res = np.hstack((self.img2, bar, self.img, bar, self.output))
                 print(" Result saved as image \n")
-                cv.imwrite('grabcut_output.png', res)
+                cv.imwrite('grabcut_output.png', self.output)
                 path = os.getcwd() + '/grabcut_output.png'
                 cv.destroyAllWindows()
                 # print(sys.path())
