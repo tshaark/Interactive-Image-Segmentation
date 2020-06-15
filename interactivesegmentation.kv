@@ -112,11 +112,7 @@
                     max: 1.6
                     step: 0.01
                     orientation: 'horizontal'
-                Button:
-                    text: "Done"
-                    background_color: (0.45,0.45,0.45,1)
-                    height: 20
-                    on_release: root.zoom_image(slider_zoom.value)
+                    on_touch_move: root.zoom_image(slider_zoom.value)
 
                 Label:
                     text: "CONTRAST"       
@@ -126,12 +122,8 @@
                     max: 3
                     step: 0.2
                     orientation: 'horizontal'
+                    on_touch_move: root.adjust_image(slider_contrast.value,-1)
                     
-                Button:
-                    text: "Done"
-                    background_color: (0.45,0.45,0.45,1)
-                    height: 20
-                    on_release: root.adjust_image(slider_contrast.value,-1)
                 Label:
                     text: "BRIGHTNESS"       
                 Slider:
@@ -140,11 +132,8 @@
                     max: 100
                     step: 1
                     orientation: 'horizontal'
+                    on_touch_move:root.adjust_image(-1,slider_brightness.value)
                     
-                Button:
-                    text: "Done"
-                    background_color: (0.45,0.45,0.45,1)
-                    on_release: root.adjust_image(-1,slider_brightness.value)
             
 
 
