@@ -12,6 +12,7 @@ import cv2 as cv
 from grabcut import GrabCut
 from watershed import WaterShed
 from blur import Blur
+import SimpleITK as sitk
 import os
 import numpy as np
 
@@ -27,6 +28,7 @@ class PopupWatershed(FloatLayout):
 
 class SaveDialog(FloatLayout):
     cancel = ObjectProperty(None)
+    save = ObjectProperty(None)
 
 class Root(FloatLayout):
     loadfile = ObjectProperty(None)
@@ -41,11 +43,14 @@ class Root(FloatLayout):
         self.alpha = 1
         self.beta = 0
         self.itr = 0
+        self.path_list = list()
 
     def dismiss_popup(self):
         self._popup.dismiss()
     
     def quit(self):
+        for i in self.path_list:
+            os.remove(i)
         App.get_running_app().stop()
     
     def use_watershed(self):
@@ -56,6 +61,7 @@ class Root(FloatLayout):
         self.rect.source = path
         self.updated_image = cv.imread(path)
         self.path = path
+        self.path_list.append(path)
         return
     
     def use_grabcut(self):
@@ -66,10 +72,14 @@ class Root(FloatLayout):
         self.rect.source = path
         self.updated_image = cv.imread(path)
         self.path = path
+        self.path_list.append(path)
         return
     def zoom_image(self, scale):
         self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
         self.rect.size = (scale*400,scale*400)
+        print(self.path)
+        self.rect.source = self.path
+        print(self.rect.source)
         return
 
     def show_load(self):
@@ -85,11 +95,11 @@ class Root(FloatLayout):
         self._popup.open()
 
     def show_save(self):
-        # content = SaveDialog(cancel=self.dismiss_popup)
-        # self._popup = Popup(title="Save file", content=content,
-        #                     size_hint=(0.9, 0.9))
-        # self._popup.open()
-        cv.imwrite('output.png',self.updated_image)
+        # cv.imwrite('output.png',self.updated_image)
+        content = SaveDialog(save=self.save, cancel=self.dismiss_popup)
+        self._popup = Popup(title="Save", content = content,
+                            size_hint=(0.9,0.9))
+        self._popup.open()
 
     def load(self, path, filename):
         with open(os.path.join(path, filename[0])) as stream:
@@ -98,13 +108,14 @@ class Root(FloatLayout):
             self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
             self.rect.source = self.path 
             self.updated_image = cv.imread(self.path)    
-            self.original_image = self.updated_image       
+            self.original_image = self.updated_image  
         self.dismiss_popup()
 
     def save(self, path, filename):
-        print(path, filename)
+        # print("yaha tak aaya")
         with open(os.path.join(path, filename), 'w') as stream:
-            stream.write(self.updated_image)
+            # print(stream.name)
+            cv.imwrite(stream.name,self.updated_image)
         self.dismiss_popup()
     
     def reset(self):
@@ -123,7 +134,7 @@ class Root(FloatLayout):
         self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
         self.rect.source = path
         self.path = path
-        os.remove(path)
+        self.path_list.append(path)
         return
 
     def use_blur_gaus(self):
@@ -135,7 +146,7 @@ class Root(FloatLayout):
         self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
         self.rect.source = path
         self.path = path
-        os.remove(path)
+        self.path_list.append(path)
         return
 
     
@@ -148,7 +159,7 @@ class Root(FloatLayout):
         self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
         self.rect.source = path
         self.path = path
-        os.remove(path)
+        self.path_list.append(path)
         return
     
     def use_blur_bil(self):
@@ -160,7 +171,7 @@ class Root(FloatLayout):
         self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
         self.rect.source = path
         self.path = path
-        os.remove(path)
+        self.path_list.append(path)
         return
     
     def use_sharpen(self):
@@ -172,9 +183,33 @@ class Root(FloatLayout):
         self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
         self.rect.source = path
         self.path = path
-        os.remove(path)
+        self.path_list.append(path)
         return
 
+    def use_threshold(self):
+        img = sitk.GetImageFromArray(self.updated_image)
+        otsu_filter = sitk.OtsuThresholdImageFilter()
+        otsu_filter.SetInsideValue(0)
+        otsu_filter.SetOutsideValue(1)
+        seg = otsu_filter.Execute(img)
+        self.overlay = sitk.GetArrayFromImage(seg)
+        self.updated_image = np.uint8(self.overlay * 255)
+        cv.imwrite('thr.png',self.updated_image)
+        path = os.getcwd() + '/thr.png'
+        self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
+        self.rect.source = path
+        self.path = path
+        self.path_list.append(path)
+        return
+    def use_negative(self):
+        self.updated_image = 255 - self.updated_image
+        cv.imwrite('neg.png',self.updated_image)
+        path = os.getcwd() + '/neg.png'
+        self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
+        self.rect.source = path
+        self.path = path
+        self.path_list.append(path)
+        return    
     def adjust_image(self,alpha, beta):
         self.itr += 1
         if alpha != -1:
@@ -182,12 +217,13 @@ class Root(FloatLayout):
         if beta != -1:
             self.beta = beta
         self.updated_image = cv.convertScaleAbs(self.original_image, alpha=self.alpha, beta=self.beta)
-        cv.imwrite('temp(%d).png'%self.itr,self.updated_image)
-        path = os.getcwd() + '/temp(%d).png'%self.itr
+        cv.imwrite('tmp(%d).png'%self.itr,self.updated_image)
+        path = os.getcwd() + '/tmp(%d).png'%self.itr
         self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
         self.rect.source = path
         self.path = path
-        os.remove(path)
+        # os.remove(path)
+        self.path_list.append(path)
         return
 
 

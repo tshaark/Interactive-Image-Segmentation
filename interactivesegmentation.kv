@@ -104,6 +104,14 @@
                     text:"Sharpen"
                     background_color: (0.45,0.45,0.45,1)
                     on_press: root.use_sharpen()
+                Button:
+                    text:"Threshold"
+                    background_color: (0.45,0.45,0.45,1)
+                    on_press: root.use_threshold()
+                Button:
+                    text:"Negative"
+                    background_color: (0.45,0.45,0.45,1)
+                    on_press: root.use_negative()
                 Label:
                     text: "ZOOM"       
                 Slider:
@@ -112,7 +120,7 @@
                     max: 1.6
                     step: 0.01
                     orientation: 'horizontal'
-                    on_touch_move: root.zoom_image(slider_zoom.value)
+                    on_value: root.zoom_image(slider_zoom.value)
 
                 Label:
                     text: "CONTRAST"       
@@ -122,7 +130,7 @@
                     max: 3
                     step: 0.2
                     orientation: 'horizontal'
-                    on_touch_move: root.adjust_image(slider_contrast.value,-1)
+                    on_value: root.adjust_image(slider_contrast.value,-1)
                     
                 Label:
                     text: "BRIGHTNESS"       
@@ -132,7 +140,7 @@
                     max: 100
                     step: 1
                     orientation: 'horizontal'
-                    on_touch_move:root.adjust_image(-1,slider_brightness.value)
+                    on_value:root.adjust_image(-1,slider_brightness.value)
                     
             
 
@@ -156,7 +164,7 @@
                 text: "Load"
                 on_release: root.load(filechooser.path, filechooser.selection)
 
-<SaveImageDialog>:
+<SaveDialog>:
     text_input: text_input
     BoxLayout:
         size: root.size
@@ -169,8 +177,6 @@
             multiline: False
         FileChooserIconView:
             id: filechooser
-
-
         BoxLayout:
             size_hint_y: None
             height: 30
