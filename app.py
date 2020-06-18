@@ -54,26 +54,32 @@ class Root(FloatLayout):
         App.get_running_app().stop()
     
     def use_watershed(self):
-        img = cv.imread(self.path)
-        ws = WaterShed(img)
-        path = ws.run()
-        self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
-        self.rect.source = path
-        self.updated_image = cv.imread(path)
-        self.path = path
-        self.path_list.append(path)
-        return
+        try:
+            img = cv.imread(self.path)
+            ws = WaterShed(img)
+            path = ws.run()
+            self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
+            self.rect.source = path
+            self.updated_image = cv.imread(path)
+            self.path = path
+            self.path_list.append(path)
+            return
+        except Exception as e:
+            print(e)
     
     def use_grabcut(self):
-        img = cv.imread(self.path)
-        gc = GrabCut(img)
-        path = gc.run()
-        self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
-        self.rect.source = path
-        self.updated_image = cv.imread(path)
-        self.path = path
-        self.path_list.append(path)
-        return
+        try:
+            img = cv.imread(self.path)
+            gc = GrabCut(img)
+            path = gc.run()
+            self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
+            self.rect.source = path
+            self.updated_image = cv.imread(path)
+            self.path = path
+            self.path_list.append(path)
+            return
+        except Exception as e:
+            print(e)
     def zoom_image(self, scale):
         self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
         self.rect.size = (scale*400,scale*400)
@@ -113,118 +119,149 @@ class Root(FloatLayout):
 
     def save(self, path, filename):
         # print("yaha tak aaya")
-        with open(os.path.join(path, filename), 'w') as stream:
-            # print(stream.name)
-            cv.imwrite(stream.name,self.updated_image)
-        self.dismiss_popup()
+        try:
+            with open(os.path.join(path, filename), 'w') as stream:
+                # print(stream.name)
+                cv.imwrite(stream.name,self.updated_image)
+            self.dismiss_popup()
+        except Exception as e:
+            print(e)
     
     def reset(self):
-        self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
-        self.rect.source = self.original_path
-        self.updated_image = cv.imread(self.original_path)
-        self.original_image = self.updated_image
-        self.path = self.original_path
+        try:
+            self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
+            self.rect.source = self.original_path
+            self.updated_image = cv.imread(self.original_path)
+            self.original_image = self.updated_image
+            self.path = self.original_path
+        except Exception as e:
+            print(e)
 
     def use_blur_avg(self):
-        blur = Blur(self.updated_image)
-        self.updated_image = blur.averaging()
-        del blur
-        cv.imwrite('temp1.png',self.updated_image)
-        path = os.getcwd() + '/temp1.png'
-        self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
-        self.rect.source = path
-        self.path = path
-        self.path_list.append(path)
-        return
+        try:
+            blur = Blur(self.updated_image)
+            self.updated_image = blur.averaging()
+            del blur
+            cv.imwrite('temp1.png',self.updated_image)
+            path = os.getcwd() + '/temp1.png'
+            self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
+            self.rect.source = path
+            self.path = path
+            self.path_list.append(path)
+            return
+        except Exception as e:
+            print(e)
 
     def use_blur_gaus(self):
-        blur = Blur(self.updated_image)
-        self.updated_image = blur.gaussian()
-        del blur
-        cv.imwrite('temp2.png',self.updated_image)
-        path = os.getcwd() + '/temp2.png'
-        self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
-        self.rect.source = path
-        self.path = path
-        self.path_list.append(path)
-        return
+        try:
+            blur = Blur(self.updated_image)
+            self.updated_image = blur.gaussian()
+            del blur
+            cv.imwrite('temp2.png',self.updated_image)
+            path = os.getcwd() + '/temp2.png'
+            self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
+            self.rect.source = path
+            self.path = path
+            self.path_list.append(path)
+            return
+        except Exception as e:
+            print(e)
 
     
     def use_blur_med(self):
-        blur = Blur(self.updated_image)
-        self.updated_image = blur.median()
-        del blur
-        cv.imwrite('temp3.png',self.updated_image)
-        path = os.getcwd() + '/temp3.png'
-        self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
-        self.rect.source = path
-        self.path = path
-        self.path_list.append(path)
-        return
+        try:
+            blur = Blur(self.updated_image)
+            self.updated_image = blur.median()
+            del blur
+            cv.imwrite('temp3.png',self.updated_image)
+            path = os.getcwd() + '/temp3.png'
+            self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
+            self.rect.source = path
+            self.path = path
+            self.path_list.append(path)
+            return
+        except Exception as e:
+            print(e)
     
     def use_blur_bil(self):
-        blur = Blur(self.updated_image)
-        self.updated_image = blur.bilateral()
-        del blur
-        cv.imwrite('temp4.png',self.updated_image)
-        path = os.getcwd() + '/temp4.png'
-        self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
-        self.rect.source = path
-        self.path = path
-        self.path_list.append(path)
-        return
+        try:
+            blur = Blur(self.updated_image)
+            self.updated_image = blur.bilateral()
+            del blur
+            cv.imwrite('temp4.png',self.updated_image)
+            path = os.getcwd() + '/temp4.png'
+            self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
+            self.rect.source = path
+            self.path = path
+            self.path_list.append(path)
+            return
+        except Exception as e:
+            print(e)
     
     def use_sharpen(self):
-        blur = Blur(self.updated_image)
-        self.updated_image = blur.sharpen()
-        del blur
-        cv.imwrite('temp5.png',self.updated_image)
-        path = os.getcwd() + '/temp5.png'
-        self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
-        self.rect.source = path
-        self.path = path
-        self.path_list.append(path)
-        return
+        try:
+            blur = Blur(self.updated_image)
+            self.updated_image = blur.sharpen()
+            del blur
+            cv.imwrite('temp5.png',self.updated_image)
+            path = os.getcwd() + '/temp5.png'
+            self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
+            self.rect.source = path
+            self.path = path
+            self.path_list.append(path)
+            return
+        except Exception as e:
+            print(e)
 
     def use_threshold(self):
-        img = sitk.GetImageFromArray(self.updated_image)
-        otsu_filter = sitk.OtsuThresholdImageFilter()
-        otsu_filter.SetInsideValue(0)
-        otsu_filter.SetOutsideValue(1)
-        seg = otsu_filter.Execute(img)
-        self.overlay = sitk.GetArrayFromImage(seg)
-        self.updated_image = np.uint8(self.overlay * 255)
-        cv.imwrite('thr.png',self.updated_image)
-        path = os.getcwd() + '/thr.png'
-        self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
-        self.rect.source = path
-        self.path = path
-        self.path_list.append(path)
-        return
+        try:
+            img = sitk.GetImageFromArray(self.updated_image)
+            otsu_filter = sitk.OtsuThresholdImageFilter()
+            otsu_filter.SetInsideValue(0)
+            otsu_filter.SetOutsideValue(1)
+            seg = otsu_filter.Execute(img)
+            self.overlay = sitk.GetArrayFromImage(seg)
+            self.updated_image = np.uint8(self.overlay * 255)
+            cv.imwrite('thr.png',self.updated_image)
+            path = os.getcwd() + '/thr.png'
+            self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
+            self.rect.source = path
+            self.path = path
+            self.path_list.append(path)
+            return
+        except Exception as e:
+            print(e)
     def use_negative(self):
-        self.updated_image = 255 - self.updated_image
-        cv.imwrite('neg.png',self.updated_image)
-        path = os.getcwd() + '/neg.png'
-        self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
-        self.rect.source = path
-        self.path = path
-        self.path_list.append(path)
-        return    
+        try:
+            self.updated_image = 255 - self.updated_image
+            cv.imwrite('neg.png',self.updated_image)
+            path = os.getcwd() + '/neg.png'
+            self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
+            self.rect.source = path
+            self.path = path
+            self.path_list.append(path)
+            return    
+        except Exception as e:
+            print(e)
+
     def adjust_image(self,alpha, beta):
-        self.itr += 1
-        if alpha != -1:
-            self.alpha = alpha
-        if beta != -1:
-            self.beta = beta
-        self.updated_image = cv.convertScaleAbs(self.original_image, alpha=self.alpha, beta=self.beta)
-        cv.imwrite('tmp(%d).png'%self.itr,self.updated_image)
-        path = os.getcwd() + '/tmp(%d).png'%self.itr
-        self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
-        self.rect.source = path
-        self.path = path
-        # os.remove(path)
-        self.path_list.append(path)
-        return
+        try:
+            self.itr += 1
+            if alpha != -1:
+                self.alpha = alpha
+            if beta != -1:
+                self.beta = beta
+            self.updated_image = cv.convertScaleAbs(self.original_image, alpha=self.alpha, beta=self.beta)
+            cv.imwrite('tmp(%d).png'%self.itr,self.updated_image)
+            path = os.getcwd() + '/tmp(%d).png'%self.itr
+            self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
+            self.rect.source = path
+            self.path = path
+            # os.remove(path)
+            self.path_list.append(path)
+            return
+        except Exception as e:
+            print(e)
 
 
 
