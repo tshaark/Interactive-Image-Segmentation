@@ -10,9 +10,9 @@ from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
 import cv2 as cv
-from grabcut import GrabCut
-from watershed import WaterShed
-from blur import Blur
+from Modules.grabcut import GrabCut
+from Modules.watershed import WaterShed
+from Modules.blur import Blur
 import SimpleITK as sitk
 import os
 import numpy as np
