@@ -5,8 +5,9 @@ from kivy.factory import Factory
 from kivy.properties import ObjectProperty, StringProperty
 from kivy.uix.popup import Popup
 from kivy.graphics.vertex_instructions import Rectangle
-from kivy.uix.actionbar import ActionDropDown
+from kivy.uix.actionbar import ActionDropDown, ActionItem
 from kivy.uix.label import Label
+from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
 import cv2 as cv
 from grabcut import GrabCut
@@ -16,7 +17,8 @@ import SimpleITK as sitk
 import os
 import numpy as np
 
-
+class ActionTextInput(TextInput, ActionItem):
+    pass
 
 class LoadDialog(FloatLayout):
     load = ObjectProperty(None)
@@ -137,13 +139,14 @@ class Root(FloatLayout):
         except Exception as e:
             print(e)
 
-    def use_blur_avg(self):
+    def use_blur_avg(self, kernel):
         try:
             blur = Blur(self.updated_image)
-            self.updated_image = blur.averaging()
+            self.updated_image = blur.averaging(int(kernel))
             del blur
-            cv.imwrite('temp1.png',self.updated_image)
-            path = os.getcwd() + '/temp1.png'
+            self.itr += 1
+            cv.imwrite('tmp(%d).png'%self.itr,self.updated_image)
+            path = os.getcwd() + '/tmp(%d).png'%self.itr
             self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
             self.rect.source = path
             self.path = path
@@ -152,13 +155,14 @@ class Root(FloatLayout):
         except Exception as e:
             print(e)
 
-    def use_blur_gaus(self):
+    def use_blur_gaus(self, kernel):
         try:
             blur = Blur(self.updated_image)
-            self.updated_image = blur.gaussian()
+            self.updated_image = blur.gaussian(int(kernel))
             del blur
-            cv.imwrite('temp2.png',self.updated_image)
-            path = os.getcwd() + '/temp2.png'
+            self.itr += 1
+            cv.imwrite('tmp(%d).png'%self.itr,self.updated_image)
+            path = os.getcwd() + '/tmp(%d).png'%self.itr
             self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
             self.rect.source = path
             self.path = path
@@ -168,13 +172,14 @@ class Root(FloatLayout):
             print(e)
 
     
-    def use_blur_med(self):
+    def use_blur_med(self, kernel):
         try:
             blur = Blur(self.updated_image)
-            self.updated_image = blur.median()
+            self.updated_image = blur.median(int(kernel))
             del blur
-            cv.imwrite('temp3.png',self.updated_image)
-            path = os.getcwd() + '/temp3.png'
+            self.itr += 1
+            cv.imwrite('tmp(%d).png'%self.itr,self.updated_image)
+            path = os.getcwd() + '/tmp(%d).png'%self.itr
             self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
             self.rect.source = path
             self.path = path

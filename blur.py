@@ -5,17 +5,17 @@ class Blur():
     def __init__(self,image):
         # print("0")
         self.image = image
-    def averaging(self):
+    def averaging(self,k):
         # print("1")
-        avg_img = cv.blur(self.image,(5,5))
+        avg_img = cv.blur(self.image,(k,k))
         return avg_img
-    def gaussian(self):
+    def gaussian(self, k):
         # print("2")
-        gausBlur = cv.GaussianBlur(self.image, (5,5),0)
+        gausBlur = cv.GaussianBlur(self.image, (k,k),0)
         return gausBlur
-    def median(self):
+    def median(self, k):
         # print("3")
-        medBlur = cv.medianBlur(self.image,5)
+        medBlur = cv.medianBlur(self.image,k)
         return medBlur
     def bilateral(self):
         # print("4")

@@ -53,8 +53,8 @@
 
             # Add padding and spacing
             orientation: 'vertical'
-            # padding: 50
-            # spacing: 100
+            padding: 50
+            spacing: 100
             id : cv
             Widget:
                 id: w_canvas
@@ -66,7 +66,7 @@
                     Rectangle:
                         group: 'b'
                         pos: self.pos
-                        size: (400,400)
+                        size: self.size
                         source: ""
             
         BoxLayout:
@@ -85,18 +85,26 @@
                     ActionGroup:
                         text: 'Blur'
                         halign: 'center'
+                        ActionTextInput:
+                            id: textinp
+                            multiline: False
+                            hint_text:'Kernel Size'
+                            input_filter: 'int'
                         ActionButton:
                             text: 'Averaging'
-                            on_press: root.use_blur_avg()
+                            # on_press: root.callit('avg')
+                            on_press: root.use_blur_avg(textinp.text)
+                            on_release: textinp.text = ""
                         ActionButton:
                             text: 'Gaussian'
-                            on_press: root.use_blur_gaus()
+                            # on_press: root.callit('gaus')
+                            on_press: root.use_blur_gaus(textinp.text)
+                            on_release: textinp.text = ""
                         ActionButton:
                             text: 'Median'
-                            on_press: root.use_blur_med()
-                        ActionButton:
-                            text: 'Bilateral'
-                            on_press: root.use_blur_bil()
+                            # on_press: root.callit('med')
+                            on_press: root.use_blur_med(textinp.text)
+                            on_release: textinp.text = ""
                     
             BoxLayout:
                 orientation: 'vertical' 
@@ -112,15 +120,15 @@
                     text:"Negative"
                     background_color: (0.45,0.45,0.45,1)
                     on_press: root.use_negative()
-                Label:
-                    text: "ZOOM"       
-                Slider:
-                    id: slider_zoom
-                    min: 1
-                    max: 1.6
-                    step: 0.01
-                    orientation: 'horizontal'
-                    on_value: root.zoom_image(slider_zoom.value)
+                # Label:
+                #     text: "ZOOM"       
+                # Slider:
+                #     id: slider_zoom
+                #     min: 1
+                #     max: 1.6
+                #     step: 0.01
+                #     orientation: 'horizontal'
+                #     on_value: root.zoom_image(slider_zoom.value)
 
                 Label:
                     text: "CONTRAST"       
