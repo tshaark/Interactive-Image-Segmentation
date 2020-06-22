@@ -2,20 +2,88 @@ from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.factory import Factory
-from kivy.properties import ObjectProperty, StringProperty
+from kivy.properties import ObjectProperty, StringProperty, NumericProperty
 from kivy.uix.popup import Popup
 from kivy.graphics.vertex_instructions import Rectangle
 from kivy.uix.actionbar import ActionDropDown, ActionItem
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
-import cv2 as cv
+from kivy.uix.widget import Widget
+from kivy.uix.image import Image
+from kivy.clock import Clock
+from kivy.graphics.texture import Texture
+
 from Modules.grabcut import GrabCut
 from Modules.watershed import WaterShed
 from Modules.blur import Blur
+from Modules.audio import AudioRecorder
+
+import cv2 as cv
 import SimpleITK as sitk
 import os
 import numpy as np
+
+STD_DIMENSIONS =  {
+    "480p": (640, 480),
+    "720p": (1280, 720),
+    "1080p": (1920, 1080),
+    "4k": (3840, 2160),
+}
+VIDEO_TYPE = {
+    'avi': cv.VideoWriter_fourcc(*'XVID'),
+    'mp4': cv.VideoWriter_fourcc(*'XVID'),
+}
+
+class KivyCamera(BoxLayout):
+    cancel = ObjectProperty(None)
+    filename = StringProperty('videos/video.avi')
+    frames_per_second = NumericProperty(30.0)
+    video_resolution = StringProperty('720p')
+    flag = True
+
+    def __init__(self, **kwargs):
+        super(KivyCamera, self).__init__(**kwargs)
+        self.img1=Image()
+        self.add_widget(self.img1)
+        self.capture = cv.VideoCapture(0)
+        self.out = cv.VideoWriter(self.filename, self.get_video_type(self.filename), self.frames_per_second, self.get_dims(self.capture, self.video_resolution))
+        if self.flag == True:
+            self.event = Clock.schedule_interval(self.update, 1 / self.frames_per_second)
+        else:
+            cv.destroyAllWindows()
+            return
+    
+    def stop_record(self):
+        self.out.release()
+        self.capture.release()
+        self.flag = False
+        self.event.cancel()
+
+    def update(self, *args):
+        ret, frame = self.capture.read()
+        self.out.write(frame)
+        buf = cv.flip(frame, 0).tostring()
+        texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt="bgr")
+        texture.blit_buffer(buf, colorfmt="bgr", bufferfmt="ubyte")
+        self.img1.texture = texture
+
+    def change_resolution(self, cap, width, height):
+        self.capture.set(3, width)
+        self.capture.set(4, height)
+
+    def get_dims(self, cap, video_resolution='1080p'):
+        width, height = STD_DIMENSIONS["480p"]
+        if self.video_resolution in STD_DIMENSIONS:
+            width, height = STD_DIMENSIONS[self.video_resolution]
+        self.change_resolution(cap, width, height)
+        return width, height
+
+    def get_video_type(self, filename):
+        filename, ext = os.path.splitext(filename)
+        if ext in VIDEO_TYPE:
+          return  VIDEO_TYPE[ext]
+        return VIDEO_TYPE['avi']
 
 class ActionTextInput(TextInput, ActionItem):
     pass
@@ -26,6 +94,10 @@ class LoadDialog(FloatLayout):
 
 class PopupWatershed(FloatLayout):
     cancel = ObjectProperty(None)
+
+class Recorder(FloatLayout):
+    start_recording = ObjectProperty(None)
+    stop_recording = ObjectProperty(None)
 
 
 class SaveDialog(FloatLayout):
@@ -46,6 +118,7 @@ class Root(FloatLayout):
         self.beta = 0
         self.itr = 0
         self.path_list = list()
+        self.audio_object = None
 
     def dismiss_popup(self):
         self._popup.dismiss()
@@ -99,6 +172,17 @@ class Root(FloatLayout):
     def show_watershed_inst(self):
         content = PopupWatershed()
         self._popup = Popup(title="How to use", content = content,
+                            size_hint=(0.9,0.9))
+        self._popup.open()
+    
+    def show_recorder(self):
+        content = Recorder(start_recording = self.start_recording, stop_recording = self.stop_recording)
+        self._popup = Popup(title="Record Audio", content = content,
+                            size_hint=(0.4,0.4))
+        self._popup.open()
+    def show_vid_recorder(self):
+        content = KivyCamera(cancel = self.dismiss_popup)
+        self._popup = Popup(title="Record Video", content = content,
                             size_hint=(0.9,0.9))
         self._popup.open()
 
@@ -267,6 +351,17 @@ class Root(FloatLayout):
             return
         except Exception as e:
             print(e)
+    def start_recording(self):
+        # print("check")
+        self.audio_object =  AudioRecorder()
+        self.audio_object.record()
+
+    def stop_recording(self):
+        self.audio_object.flag = False
+        self.audio_object = None
+        self.dismiss_popup()
+    
+    
 
 
 

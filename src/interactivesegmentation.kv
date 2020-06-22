@@ -20,6 +20,14 @@
                         text: 'Save'
                         on_release: root.show_save() 
                     ActionButton:
+                        id: audio
+                        text: 'Recorder'
+                        on_release: root.show_recorder() 
+                    ActionButton:
+                        id: camera
+                        text: 'Video-Recorder'
+                        on_release: root.show_vid_recorder() 
+                    ActionButton:
                         text: 'Instructions'
                         on_release: root.show_watershed_inst()     
                     ActionButton:
@@ -213,9 +221,37 @@
                 markup: True
                 size_hint: 0.6,0.2
                 pos_hint: {'x':0.29,'top': 0.5}
-            # BoxLayout:
-            #     size_hint_y: None
-            #     height: 30
-            #     Button:
-            #         text: "Cancel"
-            #         on_release: root.cancel()
+
+<Recorder>:
+    BoxLayout:
+        size: root.size
+        pos: root.pos
+        orientation: "vertical"
+        BoxLayout:
+            size_hint_y: None
+            height: 30
+            Button:
+                text:"Start"
+                # size_hint: 0.2,0.2
+                on_press: root.start_recording()
+            Button:
+                text:"Stop"
+                # size_hint: 0.2,0.2
+                on_press: root.stop_recording()
+
+<KivyCamera>:
+    BoxLayout:
+        size: root.size
+        pos: root.pos
+        orientation: "vertical"
+        BoxLayout:
+            size_hint_y: None
+            height: 30
+            Button:
+                text:"Stop"
+                # size_hint: 0.2,0.2
+                on_press: root.stop_record()
+            Button:
+                text:"Cancel"
+                # size_hint: 0.2,0.2
+                on_press: root.cancel()
