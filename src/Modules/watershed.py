@@ -14,6 +14,9 @@ import numpy as np
 import cv2 as cv
 from Modules.common import Sketcher
 import os
+import requests
+import json
+from Modules.encodedecodeimg import EncodeDecodeImage
 
 class WaterShed:
     def __init__(self, img):
@@ -36,7 +39,27 @@ class WaterShed:
 
     def watershed(self):
         m = self.markers.copy()
-        cv.watershed(self.img, m)
+        shape = self.img.shape
+        obj = EncodeDecodeImage()
+        enc_img = obj.encode(self.img)
+        enc_markers = obj.encode(m)
+        data = {
+            'img': enc_img,
+            'markers': enc_markers,
+            'row': shape[0],
+            'cols': shape[1],
+            'channels': shape[2]
+        }
+        URL = "http://127.0.0.1:8000/watershed"
+        r = requests.post(
+            url = URL,
+            headers = {"Content-Type": 'application/json',
+                        "accept": 'application/json'},
+            data=json.dumps(data)  
+        )
+        print(r.status_code)
+        data = r.json()
+        m = obj.decode2D_int32(data['markers'], shape[0], shape[1])
         overlay = self.colors[np.maximum(m, 0)]
         self.vis = cv.addWeighted(self.img, 0.5, overlay, 0.5, 0.0, dtype=cv.CV_8UC3)
         cv.imshow('watershed', self.vis)

@@ -18,11 +18,16 @@ from Modules.grabcut import GrabCut
 from Modules.watershed import WaterShed
 from Modules.blur import Blur
 from Modules.audio import AudioRecorder
+from Modules.encodedecodeimg import EncodeDecodeImage
 
 import cv2 as cv
 import SimpleITK as sitk
 import os
+import json
 import numpy as np
+import requests
+from multiprocessing import Process
+import sys
 
 STD_DIMENSIONS =  {
     "480p": (640, 480),
@@ -97,7 +102,7 @@ class PopupWatershed(FloatLayout):
 
 class Recorder(FloatLayout):
     start_recording = ObjectProperty(None)
-    stop_recording = ObjectProperty(None)
+    cancel = ObjectProperty(None)
 
 
 class SaveDialog(FloatLayout):
@@ -176,7 +181,7 @@ class Root(FloatLayout):
         self._popup.open()
     
     def show_recorder(self):
-        content = Recorder(start_recording = self.start_recording, stop_recording = self.stop_recording)
+        content = Recorder(start_recording = self.start_recording, cancel = self.dismiss_popup)
         self._popup = Popup(title="Record Audio", content = content,
                             size_hint=(0.4,0.4))
         self._popup.open()
@@ -304,13 +309,25 @@ class Root(FloatLayout):
 
     def use_threshold(self):
         try:
-            img = sitk.GetImageFromArray(self.updated_image)
-            otsu_filter = sitk.OtsuThresholdImageFilter()
-            otsu_filter.SetInsideValue(0)
-            otsu_filter.SetOutsideValue(1)
-            seg = otsu_filter.Execute(img)
-            self.overlay = sitk.GetArrayFromImage(seg)
-            self.updated_image = np.uint8(self.overlay * 255)
+            m = self.updated_image.shape
+            obj = EncodeDecodeImage()
+            enc_img = obj.encode(self.updated_image)
+            data = {
+                'img': enc_img,
+                'row': m[0],
+                'cols': m[1],
+                'channels': m[2]
+            }
+            URL = "http://127.0.0.1:8000/threshold"
+            r = requests.post(
+                url = URL,
+                headers = {"Content-Type": 'application/json',
+                            "accept": 'application/json'},
+                data=json.dumps(data)  
+            )
+            print(r.status_code)
+            data = r.json()
+            self.updated_image = obj.decode(data['img'], m[0], m[1], m[2])
             cv.imwrite('thr.png',self.updated_image)
             path = os.getcwd() + '/thr.png'
             self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
@@ -322,7 +339,25 @@ class Root(FloatLayout):
             print(e)
     def use_negative(self):
         try:
-            self.updated_image = 255 - self.updated_image
+            m = self.updated_image.shape
+            obj = EncodeDecodeImage()
+            enc_img = obj.encode(self.updated_image)
+            data = {
+                'img': enc_img,
+                'row': m[0],
+                'cols': m[1],
+                'channels': m[2]
+            }
+            URL = "http://127.0.0.1:8000/negative"
+            r = requests.post(
+                url = URL,
+                headers = {"Content-Type": 'application/json',
+                            "accept": 'application/json'},
+                data=json.dumps(data)  
+            )
+            print(r.status_code)
+            data = r.json()
+            self.updated_image = obj.decode(data['img'], m[0], m[1], m[2])
             cv.imwrite('neg.png',self.updated_image)
             path = os.getcwd() + '/neg.png'
             self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
@@ -351,13 +386,17 @@ class Root(FloatLayout):
             return
         except Exception as e:
             print(e)
-    def start_recording(self):
+    def start_recording(self, rec_time):
         # print("check")
-        self.audio_object =  AudioRecorder()
-        self.audio_object.record()
+        self.audio_object =  AudioRecorder(rec_time)
+        p1 = Process(target = self.audio_object.record)
+        p1.start()
+        
+
 
     def stop_recording(self):
-        self.audio_object.flag = False
+        # self.audio_object.flag = False
+        self.audio_object.stop_record()
         self.audio_object = None
         self.dismiss_popup()
     

@@ -1,28 +1,105 @@
 import cv2 as cv
 import numpy as np
+import requests
+import io
+import matplotlib.pyplot as plt
+import base64
+import json
+from pydantic import BaseModel
+from Modules.encodedecodeimg import EncodeDecodeImage
+
 
 class Blur():
     def __init__(self,image):
-        # print("0")
         self.image = image
+    
     def averaging(self,k):
-        # print("1")
-        avg_img = cv.blur(self.image,(k,k))
-        return avg_img
+        m = self.image.shape
+        obj = EncodeDecodeImage()
+        enc_img = obj.encode(self.image)
+        data = {
+            'kernel': k,
+            'img': enc_img,
+            'row': m[0],
+            'cols': m[1],
+            'channels': m[2]
+        }
+        URL = "http://127.0.0.1:8000/blur/averaging"
+        r = requests.post(
+            url = URL,
+            headers = {"Content-Type": 'application/json',
+                        "accept": 'application/json'},
+            data=json.dumps(data)  
+        )
+        print(r.status_code)
+        data = r.json()
+        img = obj.decode(data['img'], m[0], m[1], m[2])
+        return img
+    
     def gaussian(self, k):
-        # print("2")
-        gausBlur = cv.GaussianBlur(self.image, (k,k),0)
-        return gausBlur
+        m = self.image.shape
+        obj = EncodeDecodeImage()
+        enc_img = obj.encode(self.image)
+        data = {
+            'kernel': k,
+            'img': enc_img,
+            'row': m[0],
+            'cols': m[1],
+            'channels': m[2]
+        }
+        URL = "http://127.0.0.1:8000/blur/gaussian"
+        r = requests.post(
+            url = URL,
+            headers = {"Content-Type": 'application/json',
+                        "accept": 'application/json'},
+            data=json.dumps(data)  
+        )
+        print(r.status_code)
+        data = r.json()
+        img = obj.decode(data['img'], m[0], m[1], m[2])
+        return img
+    
     def median(self, k):
-        # print("3")
-        medBlur = cv.medianBlur(self.image,k)
-        return medBlur
-    def bilateral(self):
-        # print("4")
-        bilFilter = cv.bilateralFilter(self.image,9,75,75)
-        return bilFilter
+        m = self.image.shape
+        obj = EncodeDecodeImage()
+        enc_img = obj.encode(self.image)
+        data = {
+            'kernel': k,
+            'img': enc_img,
+            'row': m[0],
+            'cols': m[1],
+            'channels': m[2]
+        }
+        URL = "http://127.0.0.1:8000/blur/median"
+        r = requests.post(
+            url = URL,
+            headers = {"Content-Type": 'application/json',
+                        "accept": 'application/json'},
+            data=json.dumps(data)  
+        )
+        print(r.status_code)
+        data = r.json()
+        img = obj.decode(data['img'], m[0], m[1], m[2])
+        return img
+    
     def sharpen(self):
-        # print("5")
-        kernel_sharpening = np.array([[-1,-1,-1],[-1, 9,-1],[-1,-1,-1]])
-        sharpened = cv.filter2D(self.image, -1, kernel_sharpening)
-        return sharpened
+        m = self.image.shape
+        obj = EncodeDecodeImage()
+        enc_img = obj.encode(self.image)
+        data = {
+            'img': enc_img,
+            'row': m[0],
+            'cols': m[1],
+            'channels': m[2]
+        }
+        URL = "http://127.0.0.1:8000/sharpen"
+        r = requests.post(
+            url = URL,
+            headers = {"Content-Type": 'application/json',
+                        "accept": 'application/json'},
+            data=json.dumps(data)  
+        )
+        print(r.status_code)
+        data = r.json()
+        img = obj.decode(data['img'], m[0], m[1], m[2])
+        return img

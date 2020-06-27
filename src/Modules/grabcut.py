@@ -5,6 +5,9 @@ import cv2 as cv
 
 import sys
 import os
+import requests
+import json
+from Modules.encodedecodeimg import EncodeDecodeImage
 
 class GrabCut():
     BLUE = [255,0,0]        # rectangle color
@@ -28,8 +31,6 @@ class GrabCut():
     thickness = 3           # brush thickness
     def __init__(self, image):
         self.img = image
-        # cv.imshow('title',self.img)
-        # cv.waitKey(0)
 
     def onmouse(self, event, x, y, flags, param):
         # Draw Rectangle
@@ -74,15 +75,6 @@ class GrabCut():
                 cv.circle(self.mask, (x, y), self.thickness, self.value['val'], -1)
 
     def run(self):
-        # Loading images
-        # if len(sys.argv) == 2:
-        #     filename = sys.argv[1] # for drawing purposes
-        # else:
-        #     print("No input image given, so loading default image, lena.jpg \n")
-        #     print("Correct Usage: python grabcut.py <filename> \n")
-        #     filename = 'lenna.png'
-
-        # self.img = cv.imread(cv.samples.findFile(filename))
         self.img2 = self.img.copy()                               # a copy of original image
         self.mask = np.zeros(self.img.shape[:2], dtype = np.uint8) # mask initialized to PR_BG
         self.output = np.zeros(self.img.shape, np.uint8)           # output image to be shown
@@ -122,7 +114,6 @@ class GrabCut():
                 cv.imwrite('grabcut_output.png', self.output)
                 path = os.getcwd() + '/grabcut_output.png'
                 cv.destroyAllWindows()
-                # print(sys.path())
                 return path
             elif k == ord('r'): # reset everything
                 print("resetting \n")
@@ -142,10 +133,55 @@ class GrabCut():
                     bgdmodel = np.zeros((1, 65), np.float64)
                     fgdmodel = np.zeros((1, 65), np.float64)
                     if (self.rect_or_mask == 0):         # grabcut with rect
-                        cv.grabCut(self.img2, self.mask, self.rect, bgdmodel, fgdmodel, 1, cv.GC_INIT_WITH_RECT)
+                        m = self.img2.shape
+                        obj = EncodeDecodeImage()
+                        enc_img = obj.encode(self.img2)
+                        enc_mask = obj.encode(self.mask)
+                        data = {
+                            'img': enc_img,
+                            'mask': enc_mask,
+                            'rect': self.rect,
+                            'mode': "cv.GC_INIT_WITH_RECT",
+                            'row': m[0],
+                            'cols': m[1],
+                            'channels': m[2],
+                        }
+                        URL = "http://127.0.0.1:8000/grabcut"
+                        r = requests.post(
+                            url = URL,
+                            headers = {"Content-Type": 'application/json',
+                                        "accept": 'application/json'},
+                            data=json.dumps(data)  
+                        )
+                        print(r.status_code)
+                        data = r.json()
+                        self.mask = obj.decode2D(data['mask'], m[0], m[1])
                         self.rect_or_mask = 1
+                    
                     elif (self.rect_or_mask == 1):       # grabcut with mask
-                        cv.grabCut(self.img2, self.mask, self.rect, bgdmodel, fgdmodel, 1, cv.GC_INIT_WITH_MASK)
+                        m = self.img2.shape
+                        obj = EncodeDecodeImage()
+                        enc_img = obj.encode(self.img2)
+                        enc_mask = obj.encode(self.mask)
+                        data = {
+                            'img': enc_img,
+                            'mask': enc_mask,
+                            'rect': self.rect,
+                            'mode': "cv.GC_INIT_WITH_MASK",
+                            'row': m[0],
+                            'cols': m[1],
+                            'channels': m[2]
+                        }
+                        URL = "http://127.0.0.1:8000/grabcut"
+                        r = requests.post(
+                            url = URL,
+                            headers = {"Content-Type": 'application/json',
+                                        "accept": 'application/json'},
+                            data=json.dumps(data)  
+                        )
+                        print(r.status_code)
+                        data = r.json()
+                        self.mask = obj.decode2D(data['mask'], m[0], m[1])
                 except:
                     import traceback
                     traceback.print_exc()

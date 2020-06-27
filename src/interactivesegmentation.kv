@@ -229,15 +229,29 @@
         orientation: "vertical"
         BoxLayout:
             size_hint_y: None
+            height: 100
+            Image:
+                source: 'rec.png'
+                size: self.size
+        BoxLayout:
+            size_hint_y: None
+            height: 30
+            TextInput:
+                id: rec_time_id
+                hint_text: "Record Duration (seconds)"
+                multiline: False
+                input_filter: 'int'
+        BoxLayout:
+            size_hint_y: None
             height: 30
             Button:
                 text:"Start"
                 # size_hint: 0.2,0.2
-                on_press: root.start_recording()
+                on_press: root.start_recording(rec_time_id.text)
             Button:
-                text:"Stop"
+                text:"Cancel"
                 # size_hint: 0.2,0.2
-                on_press: root.stop_recording()
+                on_press: root.cancel()
 
 <KivyCamera>:
     BoxLayout:
