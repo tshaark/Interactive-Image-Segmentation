@@ -20,6 +20,7 @@ from Modules.blur import Blur
 from Modules.audio import AudioRecorder
 from Modules.encodedecodeimg import EncodeDecodeImage
 
+import time
 import cv2 as cv
 import SimpleITK as sitk
 import os
@@ -102,6 +103,7 @@ class PopupWatershed(FloatLayout):
 
 class Recorder(FloatLayout):
     start_recording = ObjectProperty(None)
+    stop_recording = ObjectProperty(None)
     cancel = ObjectProperty(None)
 
 
@@ -181,7 +183,7 @@ class Root(FloatLayout):
         self._popup.open()
     
     def show_recorder(self):
-        content = Recorder(start_recording = self.start_recording, cancel = self.dismiss_popup)
+        content = Recorder(start_recording = self.start_recording, cancel = self.dismiss_popup, stop_recording = self.stop_recording)
         self._popup = Popup(title="Record Audio", content = content,
                             size_hint=(0.4,0.4))
         self._popup.open()
@@ -386,19 +388,31 @@ class Root(FloatLayout):
             return
         except Exception as e:
             print(e)
-    def start_recording(self, rec_time):
+    def start_recording(self):
         # print("check")
-        self.audio_object =  AudioRecorder(rec_time)
-        p1 = Process(target = self.audio_object.record)
-        p1.start()
+        rec =  AudioRecorder(channels=2)
+        self.audio_object = rec.open('audios/nonblocking.wav', 'wb')
+        self.audio_object.start_recording()
+        # return self.audio_object
+        # rec = AudioRecorder(channels=2)
+        # with rec.open('audios/nonblocking.wav', 'wb') as recfile2:
+        #     recfile2.start_recording()
+        #     time.sleep(5.0)
+        #     recfile2.stop_recording()
+        # with rec.open('audios/nonblocking.wav', 'wb') as self.audio_object:
+        #     self.audio_object.start_recording()
+        # p1 = Process(target = self.audio_object.record)
+        # p1.start()
         
 
 
     def stop_recording(self):
+
+        # print('bt')
         # self.audio_object.flag = False
-        self.audio_object.stop_record()
-        self.audio_object = None
-        self.dismiss_popup()
+        self.audio_object.stop_recording()
+        # self.audio_object = None
+        # self.dismiss_popup()
     
     
 
