@@ -5,6 +5,7 @@ import io
 import matplotlib.pyplot as plt
 import base64
 import json
+import os
 from pydantic import BaseModel
 from Modules.encodedecodeimg import EncodeDecodeImage
 
@@ -24,7 +25,7 @@ class Blur():
             'cols': m[1],
             'channels': m[2]
         }
-        URL = "http://127.0.0.1:8000/blur/averaging"
+        URL = os.environ["server_ip"]+"/blur/averaging"
         r = requests.post(
             url = URL,
             headers = {"Content-Type": 'application/json',
@@ -47,7 +48,7 @@ class Blur():
             'cols': m[1],
             'channels': m[2]
         }
-        URL = "http://127.0.0.1:8000/blur/gaussian"
+        URL = os.environ["server_ip"]+"/blur/gaussian"
         r = requests.post(
             url = URL,
             headers = {"Content-Type": 'application/json',
@@ -70,7 +71,7 @@ class Blur():
             'cols': m[1],
             'channels': m[2]
         }
-        URL = "http://127.0.0.1:8000/blur/median"
+        URL = os.environ["server_ip"]+"/blur/median"
         r = requests.post(
             url = URL,
             headers = {"Content-Type": 'application/json',
@@ -92,7 +93,7 @@ class Blur():
             'cols': m[1],
             'channels': m[2]
         }
-        URL = "http://127.0.0.1:8000/sharpen"
+        URL = os.environ["server_ip"]+"/sharpen"
         r = requests.post(
             url = URL,
             headers = {"Content-Type": 'application/json',

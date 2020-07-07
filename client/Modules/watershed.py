@@ -50,7 +50,7 @@ class WaterShed:
             'cols': shape[1],
             'channels': shape[2]
         }
-        URL = "http://127.0.0.1:8000/watershed"
+        URL = os.environ["server_ip"]+"/watershed"
         r = requests.post(
             url = URL,
             headers = {"Content-Type": 'application/json',

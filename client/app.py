@@ -126,7 +126,9 @@ class Root(FloatLayout):
         self.itr = 0
         self.path_list = list()
         self.audio_object = None
-
+        # os.environ["server_ip"] = "http://0.0.0.0:8080"
+        os.environ["server_ip"] = ("http://" + sys.argv[1] )
+        # print(os.environ["ipadd"])
     def dismiss_popup(self):
         self._popup.dismiss()
     
@@ -320,7 +322,8 @@ class Root(FloatLayout):
                 'cols': m[1],
                 'channels': m[2]
             }
-            URL = "http://127.0.0.1:8000/threshold"
+            URL = os.environ["server_ip"]+"/threshold"
+            # URL = "http://127.0.0.1:8000/threshold"
             r = requests.post(
                 url = URL,
                 headers = {"Content-Type": 'application/json',
@@ -350,7 +353,7 @@ class Root(FloatLayout):
                 'cols': m[1],
                 'channels': m[2]
             }
-            URL = "http://127.0.0.1:8000/negative"
+            URL = os.environ["server_ip"]+"/negative"
             r = requests.post(
                 url = URL,
                 headers = {"Content-Type": 'application/json',

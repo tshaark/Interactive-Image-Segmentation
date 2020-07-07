@@ -146,7 +146,7 @@ class GrabCut():
                             'cols': m[1],
                             'channels': m[2],
                         }
-                        URL = "http://127.0.0.1:8000/grabcut"
+                        URL = os.environ["server_ip"]+"/grabcut"
                         r = requests.post(
                             url = URL,
                             headers = {"Content-Type": 'application/json',
@@ -172,7 +172,7 @@ class GrabCut():
                             'cols': m[1],
                             'channels': m[2]
                         }
-                        URL = "http://127.0.0.1:8000/grabcut"
+                        URL = os.environ["server_ip"]+"/grabcut"
                         r = requests.post(
                             url = URL,
                             headers = {"Content-Type": 'application/json',

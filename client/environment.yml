@@ -117,4 +117,5 @@ dependencies:
     - wcwidth==0.2.5
     - websockets==8.1
 prefix: /home/tshaark/anaconda3/envs/sitk
+ipadd: "http://0.0.0.0:8080"
 

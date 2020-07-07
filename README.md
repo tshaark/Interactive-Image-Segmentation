@@ -9,5 +9,5 @@
 
 ### Run the application
 1. go to /Interactive-Image-Segmentation/src/ folder
-2. run python3 app.py
+2. run python3 app.py "SERVER_IP_ADDRESS"
 
