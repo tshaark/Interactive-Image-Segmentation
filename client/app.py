@@ -13,6 +13,8 @@ from kivy.uix.widget import Widget
 from kivy.uix.image import Image
 from kivy.clock import Clock
 from kivy.graphics.texture import Texture
+from kivy.core.audio import SoundLoader,Sound
+from kivy.uix.video import Video
 
 from Modules.grabcut import GrabCut
 from Modules.watershed import WaterShed
@@ -27,8 +29,10 @@ import os
 import json
 import numpy as np
 import requests
-from multiprocessing import Process
 import sys
+import matplotlib.pyplot as plt
+import pyaudio  
+import wave 
 
 STD_DIMENSIONS =  {
     "480p": (640, 480),
@@ -50,6 +54,11 @@ class KivyCamera(BoxLayout):
 
     def __init__(self, **kwargs):
         super(KivyCamera, self).__init__(**kwargs)
+        self.img1 = None
+        self.capture = None
+        self.out = None
+        self.event = None
+    def start_record(self):
         self.img1=Image()
         self.add_widget(self.img1)
         self.capture = cv.VideoCapture(0)
@@ -59,7 +68,7 @@ class KivyCamera(BoxLayout):
         else:
             cv.destroyAllWindows()
             return
-    
+
     def stop_record(self):
         self.out.release()
         self.capture.release()
@@ -91,6 +100,43 @@ class KivyCamera(BoxLayout):
           return  VIDEO_TYPE[ext]
         return VIDEO_TYPE['avi']
 
+    def play_video(self):
+        # try:
+        #     player = Video(source = 'videos/video.avi')
+        #     player.play = True
+        # except:
+        #     print("Record a video first")
+        cap = cv.VideoCapture('videos/video.avi') 
+        
+        # Check if camera opened successfully 
+        if (cap.isOpened()== False):  
+            print("Error opening video file") 
+        
+        # Read until video is completed 
+        while(cap.isOpened()): 
+                
+            # Capture frame-by-frame 
+            ret, frame = cap.read() 
+            if ret == True: 
+            
+                # Display the resulting frame 
+                cv.imshow('Frame', frame) 
+            
+                # Press Q on keyboard to  exit 
+                if cv.waitKey(25) & 0xFF == ord('q'): 
+                    break
+            
+            # Break the loop 
+            else:  
+                break
+        
+        # When everything done, release  
+        # the video capture object 
+        cap.release() 
+        
+        # Closes all the frames 
+        cv.destroyAllWindows() 
+
 class ActionTextInput(TextInput, ActionItem):
     pass
 
@@ -105,7 +151,10 @@ class Recorder(FloatLayout):
     start_recording = ObjectProperty(None)
     stop_recording = ObjectProperty(None)
     cancel = ObjectProperty(None)
+    play_recording = ObjectProperty(None)
 
+class Histogram(FloatLayout):
+    cancel = ObjectProperty(None)
 
 class SaveDialog(FloatLayout):
     cancel = ObjectProperty(None)
@@ -115,6 +164,7 @@ class Root(FloatLayout):
     loadfile = ObjectProperty(None)
     savefile = ObjectProperty(None)
     text_input = ObjectProperty(None)
+    
     def __init__(self):
         super(Root, self).__init__()
         self.path = None
@@ -126,9 +176,10 @@ class Root(FloatLayout):
         self.itr = 0
         self.path_list = list()
         self.audio_object = None
-        # os.environ["server_ip"] = "http://0.0.0.0:8080"
+        self.sound = None
+        self.sound_button_state = "Down"
         os.environ["server_ip"] = ("http://" + sys.argv[1] )
-        # print(os.environ["ipadd"])
+    
     def dismiss_popup(self):
         self._popup.dismiss()
     
@@ -164,6 +215,7 @@ class Root(FloatLayout):
             return
         except Exception as e:
             print(e)
+    
     def zoom_image(self, scale):
         self.rect = self.ids.w_canvas.canvas.get_group('b')[0]
         self.rect.size = (scale*400,scale*400)
@@ -185,10 +237,11 @@ class Root(FloatLayout):
         self._popup.open()
     
     def show_recorder(self):
-        content = Recorder(start_recording = self.start_recording, cancel = self.dismiss_popup, stop_recording = self.stop_recording)
+        content = Recorder(start_recording = self.start_recording, cancel = self.dismiss_popup, stop_recording = self.stop_recording, play_recording = self.play_recording)
         self._popup = Popup(title="Record Audio", content = content,
                             size_hint=(0.4,0.4))
         self._popup.open()
+    
     def show_vid_recorder(self):
         content = KivyCamera(cancel = self.dismiss_popup)
         self._popup = Popup(title="Record Video", content = content,
@@ -263,7 +316,6 @@ class Root(FloatLayout):
             return
         except Exception as e:
             print(e)
-
     
     def use_blur_med(self, kernel):
         try:
@@ -342,6 +394,7 @@ class Root(FloatLayout):
             return
         except Exception as e:
             print(e)
+    
     def use_negative(self):
         try:
             m = self.updated_image.shape
@@ -391,35 +444,57 @@ class Root(FloatLayout):
             return
         except Exception as e:
             print(e)
+    
     def start_recording(self):
-        # print("check")
         rec =  AudioRecorder(channels=2)
-        self.audio_object = rec.open('audios/nonblocking.wav', 'wb')
+        self.audio_object = rec.open('audios/rec.wav', 'wb')
         self.audio_object.start_recording()
-        # return self.audio_object
-        # rec = AudioRecorder(channels=2)
-        # with rec.open('audios/nonblocking.wav', 'wb') as recfile2:
-        #     recfile2.start_recording()
-        #     time.sleep(5.0)
-        #     recfile2.stop_recording()
-        # with rec.open('audios/nonblocking.wav', 'wb') as self.audio_object:
-        #     self.audio_object.start_recording()
-        # p1 = Process(target = self.audio_object.record)
-        # p1.start()
-        
-
-
+    
     def stop_recording(self):
-
-        # print('bt')
-        # self.audio_object.flag = False
         self.audio_object.stop_recording()
-        # self.audio_object = None
-        # self.dismiss_popup()
     
-    
+    def play_recording(self):
+        # print(self.sound_button_state)/
+        try:
+            chunk = 1024  
+
+            #open a wav format music  
+            f = wave.open("audios/rec.wav","rb")  
+            #instantiate PyAudio  
+            p = pyaudio.PyAudio()  
+            #open stream  
+            stream = p.open(format = p.get_format_from_width(f.getsampwidth()),  
+                            channels = f.getnchannels(),  
+                            rate = f.getframerate(),  
+                            output = True)  
+            #read data  
+            data = f.readframes(chunk)  
+
+            #play stream  
+            while data:  
+                stream.write(data)  
+                data = f.readframes(chunk)  
+
+            #stop stream  
+            stream.stop_stream()  
+            stream.close()  
+
+            #close PyAudio  
+            p.terminate()  
 
 
+        except Exception as e:
+            print("Record an audio first")
+
+    def show_histogram(self):
+        img = cv.imread(self.path,0)
+        plt.hist(img.ravel(),256,[0,256])
+        plt.savefig('hist.png')
+        self.path_list.append('hist.png')
+        content = Histogram()
+        self._popup = Popup(title="Histogram", content = content,
+                            size_hint=(0.9,0.9))
+        self._popup.open()
 
 class InteractiveSegmentationApp(App):
     def build(self):
